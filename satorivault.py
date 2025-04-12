@@ -1,4 +1,5 @@
 import os
+import sys
 import yaml
 import base64
 import argparse
@@ -357,4 +358,4 @@ Note: In silent mode, both --old and --new parameters are required.
                 handle_error("Invalid choice!")
 
 if __name__ == "__main__":
-    exit(main()) 
+    sys.exit(main()) 
