@@ -2,6 +2,13 @@
 
 Secure password manager for Satori Network neuron vault.
 
+## DISCLAIMER
+
+## By using this script, you acknowledge that it modifies the contents of the vault file.
+## Always make a full backup of your vault and related data before running this script.
+## The script is provided as-is, without any warranties or guarantees.
+## Use at your own risk. The authors and contributors are not responsible for any data loss, corruption, or unintended behavior resulting from the use of this script.
+
 ## Description
 
 SatoriVault is a command-line tool for managing Satori Network neuron vault passwords and private keys. It provides a secure way to change your neuron login password and manage encrypted vault files.
