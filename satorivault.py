@@ -1,10 +1,18 @@
+"""SatoriVault CLI for managing Satori Network neuron vault passwords."""
+
+import argparse
+import base64
+import getpass
 import os
 import sys
-import yaml
-import base64
-import argparse
-import msvcrt
 from datetime import datetime
+
+import yaml
+
+try:  # pragma: no cover - platform specific
+    import msvcrt  # type: ignore[attr-defined]
+except ImportError:  # pragma: no cover - non-Windows fallback
+    msvcrt = None  # type: ignore[assignment]
 try:
     from Crypto.Cipher import AES
     from Crypto.Protocol.KDF import PBKDF2
@@ -96,21 +104,29 @@ def handle_error(message, silent=False):
     return False
 
 def get_password(prompt):
-    """Get password with asterisk display"""
+    """Return a password entered by the user, masking when possible."""
+    if msvcrt is None or not sys.stdin.isatty():
+        return getpass.getpass(prompt)
+
     print(prompt, end='', flush=True)
     password = []
     while True:
         char = msvcrt.getch()
-        if char == b'\r' or char == b'\n':  # Enter
+        if char in {b'\r', b'\n'}:  # Enter
             print()
             break
-        elif char == b'\x08':  # Backspace
+        if char == b'\x08':  # Backspace
             if password:
                 password.pop()
                 print('\b \b', end='', flush=True)
-        else:
-            password.append(char.decode())
-            print('*', end='', flush=True)
+            continue
+
+        try:
+            decoded = char.decode("utf-8")
+        except UnicodeDecodeError:
+            continue
+        password.append(decoded)
+        print('*', end='', flush=True)
     return ''.join(password)
 
 def create_backup(vault_path, silent=False):
@@ -134,7 +150,7 @@ def save_decrypted_data(data, filename, silent=False):
     """Save decrypted data to file"""
     try:
         with open(filename, 'w') as f:
-            yaml.dump(data, f, default_flow_style=False)
+            yaml.safe_dump(data, f, default_flow_style=False, sort_keys=False)
         print_success(f"Decrypted data saved to {filename}", silent)
         return True
     except Exception as e:
@@ -199,7 +215,7 @@ def load_yaml(path: str):
 def save_yaml(data: dict, path: str):
     """Save data to YAML file"""
     with open(path, 'w') as f:
-        yaml.dump(data, f, default_flow_style=False)
+        yaml.safe_dump(data, f, default_flow_style=False, sort_keys=False)
 
 def decrypt_vault(vault_path, password, silent=False):
     """Attempt to decrypt vault.yaml file with given password"""
